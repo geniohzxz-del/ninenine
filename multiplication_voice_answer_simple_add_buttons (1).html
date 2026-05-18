@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>九九乘法限時練習 · 混合模式版</title>
+<style>
+:root{
+  --paper:#fefaf2; --paper2:#fff7e8; --ink:#264653; --soft:#6f8290;
+  --line:#214c5a; --green:#21806f; --green2:#145c51; --blue:#4f76ad;
+  --red:#e76f51; --yellow:#e9c46a; --orange:#f4a261;
+  --shadow:0 3px 0 rgba(38,70,83,.12),0 14px 30px rgba(38,70,83,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:var(--ink);background:var(--paper);}
+body{overflow:auto;touch-action:manipulation;}
+.app{min-height:100dvh;padding:14px;display:flex;flex-direction:column;gap:10px;}
+header{display:flex;justify-content:space-between;align-items:end;gap:12px;border-bottom:2px dashed var(--soft);padding-bottom:8px;}
+h1{margin:0;font-size:clamp(24px,3vw,36px);letter-spacing:2px;font-weight:1000;}
+.sub{color:var(--soft);font-weight:900;font-size:clamp(13px,1.4vw,16px);text-align:right;}
+.main{flex:1;display:grid;grid-template-columns:minmax(330px,.92fr) minmax(430px,1.08fr);gap:12px;min-height:0;}
+.card{background:linear-gradient(135deg,var(--paper),var(--paper2));border:3px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px;}
+.left,.right{display:flex;flex-direction:column;gap:10px;min-height:0;}
+.title{font-size:22px;font-weight:1000;letter-spacing:2px;margin-bottom:8px;}
+.help{color:var(--soft);font-weight:800;line-height:1.5;font-size:15px;}
+button{font-family:inherit;border:3px solid var(--line);background:#fffaf1;color:var(--ink);border-radius:12px;font-size:22px;font-weight:1000;padding:12px 10px;box-shadow:0 4px 0 var(--line);cursor:pointer;user-select:none;}
+button:active{transform:translateY(4px);box-shadow:0 0 0 var(--line);}
+button:disabled{opacity:.45;filter:grayscale(.4);cursor:not-allowed;transform:none;}
+.primary{background:var(--green);color:white;border-color:var(--green2);box-shadow:0 4px 0 #0e463d;}
+.blue{background:var(--blue);color:white;border-color:#365986;box-shadow:0 4px 0 #294160;}
+.red{background:var(--red);color:white;border-color:#ba4f38;box-shadow:0 4px 0 #9d3f2a;}
+.selectPad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
+.selectPad .num{min-height:68px;font-size:34px;background:white;}
+.selectPad .num.on{background:var(--green);color:white;border-color:var(--green2);}
+.selectPad .wide{font-size:22px;background:#fff;}
+.selectPad .mode2x1,.selectPad .mode2x2,.selectPad .adjustBtn{min-height:68px;font-size:30px;background:#fff7da;}
+.selectPad .mode2x1.on,.selectPad .mode2x2.on{background:#9c4f96;color:white;border-color:#71356c;box-shadow:0 4px 0 #4b2449;}
+.selectPad .adjustBtn{font-size:21px;background:#fff;}
+.selectPad .adjustBtn.on{background:var(--blue);color:white;border-color:#365986;box-shadow:0 4px 0 #294160;}
+.selectedBox{margin-top:12px;border:3px dashed rgba(38,70,83,.35);border-radius:14px;padding:14px;font-size:22px;font-weight:1000;line-height:1.5;background:rgba(255,255,255,.5);}
+.selectedBox b{color:var(--red);font-size:34px;}
+.selectedList{color:var(--green2);}
+.ruleBox{margin-top:8px;background:rgba(233,196,106,.18);border:2px solid rgba(38,70,83,.15);border-radius:12px;padding:10px 12px;color:var(--soft);font-weight:900;line-height:1.55;}
+.meta{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.stat{text-align:center;background:rgba(255,255,255,.78);border:2px solid rgba(38,70,83,.22);border-radius:12px;padding:9px 4px;}
+.stat .lab{font-size:13px;color:var(--soft);font-weight:900;letter-spacing:1px;}
+.stat .val{font-size:30px;font-weight:1000;line-height:1.1;margin-top:2px;}
+.stat.hot{background:rgba(233,196,106,.25)}
+.progressOuter{height:18px;border:3px solid var(--line);border-radius:999px;overflow:hidden;background:white;margin-top:10px;}
+.progressInner{height:100%;width:0%;background:linear-gradient(90deg,var(--green),var(--yellow));transition:width .25s;}
+.timeBar{height:12px;border:2px solid rgba(38,70,83,.55);border-radius:999px;overflow:hidden;background:white;margin-top:8px;}
+.timeInner{height:100%;width:100%;background:linear-gradient(90deg,var(--green),var(--orange),var(--red));transition:width .08s linear;}
+.quizBox{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:linear-gradient(135deg,rgba(233,196,106,.35),rgba(255,255,255,.55));border:3px solid var(--line);border-radius:16px;min-height:220px;padding:14px;}
+.qno{font-size:16px;color:var(--soft);font-weight:1000;letter-spacing:3px;}
+.question{font-size:clamp(78px,11vw,132px);font-weight:1000;line-height:1;margin:8px 0 10px;}
+.answer{width:min(380px,94%);height:72px;border:3px solid var(--line);border-radius:14px;background:white;font-size:44px;font-weight:1000;text-align:center;line-height:66px;}
+.msg{min-height:32px;font-size:21px;font-weight:1000;text-align:center;color:var(--soft);}
+.msg.ok{color:var(--green2)} .msg.bad{color:var(--red)}
+.voiceStatus{min-height:28px;text-align:center;font-size:17px;font-weight:1000;color:var(--soft);}
+.voiceStatus.on{color:#8b2f91;}
+.voiceStatus.bad{color:var(--red);}
+.mic{background:#9c4f96;color:white;border-color:#71356c;box-shadow:0 4px 0 #4b2449;}
+.mic.listening{background:#d946ef;border-color:#9c2daf;animation:micPulse 1s ease-in-out infinite;}
+@keyframes micPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.keypad button{font-size:34px;min-height:64px;background:white;}
+.keypad .submitWide{grid-column:1/4;background:var(--green)!important;color:white!important;border-color:var(--green2)!important;}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.review{flex:1;min-height:155px;overflow:auto;}
+.wrongList{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.wrongItem{background:#fff;border:2px solid rgba(38,70,83,.25);border-radius:10px;padding:8px 10px;font-weight:1000;}
+.footer{font-size:13px;color:var(--soft);text-align:center;font-weight:800;}
+
+.tableModal{display:none;position:fixed;inset:0;background:rgba(38,70,83,.55);z-index:50;align-items:center;justify-content:center;padding:14px;}
+.tableModal.show{display:flex;}
+.tableCard{width:min(980px,97vw);max-height:92vh;overflow:auto;background:var(--paper);border:4px solid var(--line);border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.22);padding:14px;}
+.tableHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;border-bottom:2px dashed rgba(38,70,83,.35);padding-bottom:8px;}
+.tableHead h2{margin:0;font-size:28px;letter-spacing:2px;}
+.closeTable{width:54px;height:54px;padding:0;font-size:32px;line-height:1;background:white;}
+.tableGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.factCard{position:relative;min-height:206px;background:#fff;border:2px solid rgba(38,70,83,.15);border-radius:12px;padding:8px 8px 8px 46px;overflow:hidden;box-shadow:0 3px 10px rgba(38,70,83,.06);}
+.factBig{position:absolute;left:5px;top:0;font-size:58px;line-height:1;font-weight:1000;color:#fff26a;-webkit-text-stroke:1.6px #3ba6d9;text-shadow:0 1px 0 #1d6f92;}
+.factBig.two{font-size:42px;left:3px;top:6px;letter-spacing:-4px;-webkit-text-stroke:1.4px #3ba6d9;}
+.factLines{font-size:18px;line-height:1.44;font-weight:1000;color:#111;white-space:nowrap;letter-spacing:.2px;}
+.tipsBox{margin-top:12px;border:3px dashed rgba(38,70,83,.30);border-radius:14px;background:rgba(255,255,255,.55);padding:12px;}
+.tipsTitle{font-size:22px;font-weight:1000;margin-bottom:8px;letter-spacing:2px;color:var(--line);}
+.tipsGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.tip{background:linear-gradient(135deg,#fff,#fff7d7);border:2px solid rgba(38,70,83,.18);border-radius:12px;padding:10px;font-weight:1000;font-size:17px;line-height:1.35;}
+.tip b{display:block;font-size:24px;color:var(--green2);margin-bottom:3px;}
+@media(max-width:900px){.tableCard{padding:10px}.tableHead h2{font-size:23px}.closeTable{width:46px;height:46px;font-size:26px}.tableGrid{grid-template-columns:repeat(2,1fr);gap:7px}.factCard{min-height:190px;padding-left:44px}.factBig{font-size:54px}.factBig.two{font-size:38px;left:2px;top:8px;letter-spacing:-4px}.factLines{font-size:16px}.tipsGrid{grid-template-columns:1fr 1fr}.tip{font-size:15px}.tip b{font-size:21px}}
+@media(orientation:landscape) and (max-height:760px){.tableCard{max-height:94vh;padding:9px}.tableHead h2{font-size:20px}.closeTable{width:40px;height:40px;font-size:24px}.tableGrid{grid-template-columns:repeat(5,1fr);gap:5px}.factCard{min-height:145px;padding:5px 5px 5px 34px;border-radius:9px}.factBig{font-size:42px;-webkit-text-stroke:1.2px #3ba6d9}.factBig.two{font-size:28px;left:1px;top:5px;letter-spacing:-3px;-webkit-text-stroke:1px #3ba6d9}.factLines{font-size:13px;line-height:1.35}.tipsBox{margin-top:8px;padding:8px}.tipsTitle{font-size:17px;margin-bottom:5px}.tipsGrid{grid-template-columns:repeat(4,1fr);gap:5px}.tip{font-size:12px;padding:6px}.tip b{font-size:17px}}
+
+@media(max-width:900px){
+  .app{padding:10px;}
+  header{align-items:start}.sub{display:none}.main{grid-template-columns:1fr}.question{font-size:76px}.meta{grid-template-columns:repeat(2,1fr)}
+}
+@media(orientation:landscape) and (max-height:760px){
+  .app{padding:8px;gap:6px;} h1{font-size:25px;} header{padding-bottom:5px;}
+  .card{padding:10px;border-width:2.5px}.title{font-size:18px;margin-bottom:4px}.help{font-size:12px;}
+  button{font-size:17px;padding:8px 8px;border-width:2.5px;border-radius:10px;}
+  .selectPad{gap:6px;margin-top:6px}.selectPad .num,.selectPad .mode2x1,.selectPad .mode2x2,.selectPad .adjustBtn{min-height:42px;font-size:22px}.selectPad .wide{font-size:16px;}
+  .selectedBox{font-size:16px;padding:8px;margin-top:6px}.selectedBox b{font-size:24px}.ruleBox{font-size:12px;padding:6px 8px;}
+  .stat{padding:5px}.stat .lab{font-size:11px}.stat .val{font-size:22px}.progressOuter{height:12px;margin-top:6px}.timeBar{height:9px;margin-top:5px;}
+  .quizBox{min-height:142px;padding:8px}.qno{font-size:12px}.question{font-size:68px}.answer{height:48px;line-height:43px;font-size:32px;}
+  .keypad{gap:6px}.keypad button{min-height:42px;font-size:24px;padding:5px}.msg{font-size:16px;min-height:22px}.review{min-height:80px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>九九乘法限時練習</h1>
+    <div class="sub">可用數字鍵或麥克風作答；可自行增加題數與秒數</div>
+  </header>
+
+  <main class="main">
+    <section class="left">
+      <div class="card">
+        <div class="title">① 用數字鍵選要考哪幾個乘法</div>
+        <div class="help">點 1～10、2x1、2x2 都可複選。預設每選 1 個選項＝答對 5 題；想加量就按「增加題數」。</div>
+        <div class="selectPad" id="selectPad"></div>
+        <div class="selectedBox" id="selectedBox">目前選 <b>0</b> 個，請先選範圍。</div>
+        <div class="ruleBox">規則：每選 1 個選項＝答對 5 題，上限 20 題。按「增加題數」每次 +5，按「增加秒數」每次 +5 秒，最多各按 4 次。2x1 請輸入 3 位，例如 098；2x2 請輸入 4 位，例如 0980。</div>
+      </div>
+
+      <div class="card review">
+        <div class="title">之後加強</div>
+        <div class="help" id="reviewHelp">錯題會先收起來，這輪做完或中途會再混回來。</div>
+        <div class="wrongList" id="wrongList"></div>
+      </div>
+    </section>
+
+    <section class="right">
+      <div class="card">
+        <div class="meta">
+          <div class="stat"><div class="lab">答對題數</div><div class="val" id="correctGoal">0/0</div></div>
+          <div class="stat"><div class="lab">總作答</div><div class="val" id="attempts">0</div></div>
+          <div class="stat"><div class="lab">錯題</div><div class="val" id="wrongCount">0</div></div>
+          <div class="stat"><div class="lab">總秒數</div><div class="val" id="totalTime">0.0</div></div>
+          <div class="stat hot"><div class="lab">本題秒數</div><div class="val" id="remain">10.0</div></div>
+        </div>
+        <div class="progressOuter"><div class="progressInner" id="progress"></div></div>
+        <div class="timeBar"><div class="timeInner" id="timeProgress"></div></div>
+      </div>
+
+      <div class="quizBox">
+        <div class="qno" id="qno">準備開始</div>
+        <div class="question" id="question">?</div>
+        <div class="answer" id="answerBox"></div>
+      </div>
+
+      <div class="msg" id="msg">先用左邊數字鍵選範圍</div>
+
+      <div class="voiceStatus" id="voiceStatus">可按麥克風，用中文念答案，例如：四十二、六十四、一百、九百八十</div>
+
+      <div class="keypad">
+        <button data-key="1">1</button>
+        <button data-key="2">2</button>
+        <button data-key="3">3</button>
+        <button data-key="4">4</button>
+        <button data-key="5">5</button>
+        <button data-key="6">6</button>
+        <button data-key="7">7</button>
+        <button data-key="8">8</button>
+        <button data-key="9">9</button>
+        <button data-key="clear">清除</button>
+        <button data-key="0">0</button>
+        <button data-key="back">退格</button>
+        <button class="submitWide" data-key="submit">送出</button>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="startBtn">▶ 開始</button>
+        <button class="blue" id="restartBtn">↻ 重來</button>
+        <button class="red" id="wrongBtn">重練錯題</button>
+        <button id="stopBtn">暫停</button>
+        <button class="mic" id="micBtn">🎙️ 麥克風</button>
+        <button class="blue" id="tableBtn">📋 乘法表</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">建議：不要一次考太多；先選 1～2 組，逐步加題數或秒數。</div>
+</div>
+
+
+<div class="tableModal" id="tableModal" aria-hidden="true">
+  <div class="tableCard">
+    <div class="tableHead">
+      <h2>九九乘法表＋速記訣竅</h2>
+      <button class="closeTable" id="closeTable" title="關閉">×</button>
+    </div>
+    <div class="tableGrid" id="mulTable"></div>
+    <div class="tipsBox">
+      <div class="tipsTitle">速記訣竅</div>
+      <div class="tipsGrid">
+        <div class="tip"><b>×2</b>加倍</div>
+        <div class="tip"><b>×5</b>答案尾數是 0 或 5</div>
+        <div class="tip"><b>×10</b>後面加 0</div>
+        <div class="tip"><b>×9</b>先 ×10，再減自己</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const selected = new Set();
+  const selectedModes = new Set(); // 2x1 / 2x2，可複選
+  let extraGoalSteps = 0; // 每按一次增加題數 +5，最多 4 次
+  let extraTimeSteps = 0; // 每按一次增加秒數 +5，最多 4 次
+  const selectPad = document.getElementById('selectPad');
+  const el = id => document.getElementById(id);
+
+  let goal = 0;
+  let correct = 0;
+  let attempts = 0;
+  let input = '';
+  let running = false;
+  let paused = false;
+  let current = null;
+  let pool = [];
+  let wrongs = [];
+  let retryQueue = [];
+  let questionNo = 0;
+  let countdownTimer = null;
+  let autoSubmitTimer = null;
+  let questionStart = 0;
+  const BASE_LIMIT = 10.0;
+  let totalStart = 0;
+  let totalPausedMs = 0;
+  let pauseStart = 0;
+  let totalTimer = null;
+  let finalTotalMs = 0;
+  let recognition = null;
+  let micOn = false;
+  let recognizing = false;
+  let lastVoiceText = '';
+  let lastVoiceTime = 0;
+
+
+
+  function setVoiceStatus(text, type=''){
+    const v = el('voiceStatus');
+    if(!v) return;
+    v.textContent = text;
+    v.className = 'voiceStatus' + (type ? ' ' + type : '');
+  }
+
+  function chineseNumberToInt(s){
+    if(!s) return null;
+    s = String(s)
+      .replace(/[兩两]/g,'二')
+      .replace(/[〇○]/g,'零')
+      .replace(/[幺么]/g,'一')
+      .replace(/洞/g,'零')
+      .replace(/[^零一二三四五六七八九十百千]/g,'');
+    if(!s) return null;
+    const map = {零:0,一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
+    if(s === '百' || s === '一百') return 100;
+    if(s === '千' || s === '一千') return 1000;
+    if(s.includes('千')){
+      const parts = s.split('千');
+      const th = parts[0] ? map[parts[0]] : 1;
+      if(th == null) return null;
+      const rest = chineseNumberToInt(parts.slice(1).join('千')) || 0;
+      return th * 1000 + rest;
+    }
+    if(s.includes('百')){
+      const parts = s.split('百');
+      const h = parts[0] ? map[parts[0]] : 1;
+      if(h == null) return null;
+      const rest = chineseNumberToInt(parts.slice(1).join('百')) || 0;
+      return h * 100 + rest;
+    }
+    if(s.includes('十')){
+      const parts = s.split('十');
+      const tens = parts[0] ? map[parts[0]] : 1;
+      const ones = parts[1] ? map[parts[1]] : 0;
+      if(tens == null || ones == null) return null;
+      return tens * 10 + ones;
+    }
+    // 像「四二」或「一零零」這種逐字念法
+    if(s.length > 1){
+      let out = '';
+      for(const ch of s){ if(map[ch] == null) return null; out += map[ch]; }
+      const n = Number(out);
+      return Number.isFinite(n) ? n : null;
+    }
+    return map[s] ?? null;
+  }
+
+  function parseSpokenNumber(text){
+    if(!text) return null;
+    let t = String(text).trim();
+    const digitMatches = t.match(/\d{1,4}/g);
+    if(digitMatches && digitMatches.length){
+      const n = Number(digitMatches[digitMatches.length - 1]);
+      if(Number.isFinite(n) && n >= 0 && n <= 9999) return n;
+    }
+    t = t.replace(/答案|等於|等于|是|喔|哦|啦|了|點|點點|\s/g,'');
+    const cnMatches = t.match(/[零〇○一二兩两三四五六七八九十百千幺么洞]+/g);
+    if(cnMatches && cnMatches.length){
+      for(let i=cnMatches.length-1;i>=0;i--){
+        const n = chineseNumberToInt(cnMatches[i]);
+        if(n !== null && n >= 0 && n <= 9999) return n;
+      }
+    }
+    return null;
+  }
+
+  function setupMic(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const btn = el('micBtn');
+    if(!SR){
+      if(btn) btn.disabled = true;
+      setVoiceStatus('這個瀏覽器不支援語音辨識，請改用數字鍵盤。', 'bad');
+      return false;
+    }
+    if(recognition) return true;
+    recognition = new SR();
+    recognition.lang = 'zh-TW';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = () => {
+      recognizing = true;
+      const btn = el('micBtn');
+      if(btn){ btn.classList.add('listening'); btn.textContent = '🎙️ 收音中'; }
+      setVoiceStatus('正在收音：直接念答案，例如「四十二」。', 'on');
+    };
+
+    recognition.onend = () => {
+      recognizing = false;
+      const btn = el('micBtn');
+      if(btn){ btn.classList.remove('listening'); btn.textContent = micOn ? '🎙️ 重新收音' : '🎙️ 麥克風'; }
+      if(micOn && running && !paused){
+        setTimeout(() => startListening(), 220);
+      }
+    };
+
+    recognition.onerror = (e) => {
+      if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+        micOn = false;
+        setVoiceStatus('麥克風權限被拒絕，請允許瀏覽器使用麥克風。', 'bad');
+        const btn = el('micBtn');
+        if(btn){ btn.classList.remove('listening'); btn.textContent = '🎙️ 麥克風'; }
+      }else if(e.error !== 'no-speech'){
+        setVoiceStatus('語音辨識暫時中斷，可以再按一次麥克風。', 'bad');
+      }
+    };
+
+    recognition.onresult = (event) => {
+      if(!running || paused || !current) return;
+      let finalText = '', interimText = '';
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        const txt = event.results[i][0].transcript.trim();
+        if(event.results[i].isFinal) finalText += txt;
+        else interimText += txt;
+      }
+      const text = (finalText || interimText).trim();
+      if(!text) return;
+      const n = parseSpokenNumber(text);
+      if(n === null) {
+        setVoiceStatus(`聽到：「${text}」；請念數字答案。`, 'on');
+        return;
+      }
+      const now = performance.now();
+      if(text === lastVoiceText && now - lastVoiceTime < 1400) return;
+      lastVoiceText = text;
+      lastVoiceTime = now;
+      input = String(n);
+      el('answerBox').textContent = input;
+      setVoiceStatus(`聽到：${text} → ${n}`, 'on');
+      clearTimeout(autoSubmitTimer);
+      autoSubmitTimer = setTimeout(() => submitAnswer(true), finalText ? 80 : 520);
+    };
+    return true;
+  }
+
+  function startListening(){
+    if(!setupMic()) return;
+    if(!running || paused){
+      setVoiceStatus('請先開始練習，再開麥克風。', 'bad');
+      return;
+    }
+    if(recognizing) return;
+    try { recognition.start(); }
+    catch(e) { /* already started */ }
+  }
+
+  function stopListening(show='麥克風已關閉'){
+    micOn = false;
+    if(recognition && recognizing){
+      try { recognition.stop(); } catch(e) {}
+    }
+    const btn = el('micBtn');
+    if(btn){ btn.classList.remove('listening'); btn.textContent = '🎙️ 麥克風'; }
+    if(show) setVoiceStatus(show, '');
+  }
+
+  function toggleMic(){
+    if(!running){
+      setVoiceStatus('請先按開始，再開麥克風。', 'bad');
+      msg('請先按開始，再開麥克風', 'bad');
+      return;
+    }
+    if(micOn){
+      stopListening('麥克風已關閉，可改用數字鍵盤。');
+    }else{
+      micOn = true;
+      startListening();
+    }
+  }
+
+  function buildMultiplicationTable(){
+    const table = el('mulTable');
+    if(!table) return;
+    let html = '';
+    for(let a=1; a<=10; a++){
+      html += `<div class="factCard"><div class="factBig ${a === 10 ? 'two' : ''}">${a}</div><div class="factLines">`;
+      for(let b=1; b<=10; b++){
+        html += `${a} × ${b} = ${a*b}<br>`;
+      }
+      html += `</div></div>`;
+    }
+    table.innerHTML = html;
+  }
+
+  function openTable(){
+    const modal = el('tableModal');
+    if(!modal) return;
+    buildMultiplicationTable();
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden','false');
+  }
+
+  function closeTable(){
+    const modal = el('tableModal');
+    if(!modal) return;
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+  }
+
+  function getTotalMs(){
+    if(!totalStart) return finalTotalMs || 0;
+    if(paused && pauseStart) return Math.max(0, pauseStart - totalStart - totalPausedMs);
+    return Math.max(0, performance.now() - totalStart - totalPausedMs);
+  }
+
+  function updateTotalTime(){
+    const ms = getTotalMs();
+    el('totalTime').textContent = (ms / 1000).toFixed(1);
+  }
+
+  function startTotalTimer(){
+    clearInterval(totalTimer);
+    totalStart = performance.now();
+    totalPausedMs = 0;
+    pauseStart = 0;
+    finalTotalMs = 0;
+    updateTotalTime();
+    totalTimer = setInterval(updateTotalTime, 100);
+  }
+
+  function stopTotalTimer(){
+    finalTotalMs = getTotalMs();
+    clearInterval(totalTimer);
+    totalTimer = null;
+    updateTotalTime();
+  }
+
+  function goalFor(n){
+    if(n <= 0) return 0;
+    return Math.min(20, n * 5);
+  }
+
+  function optionCount(){
+    return selected.size + selectedModes.size;
+  }
+
+  function computeGoal(){
+    const auto = goalFor(optionCount());
+    if(auto <= 0) return 0;
+    return auto + extraGoalSteps * 5;
+  }
+
+  function timeLimit(){
+    return BASE_LIMIT + extraTimeSteps * 5;
+  }
+
+  function isAdvancedMode(){
+    return selectedModes.size > 0;
+  }
+
+  function isAdvancedQuestion(q=current){
+    return q && (q.mode === '2x1' || q.mode === '2x2');
+  }
+
+  function requiredDigits(q=current){
+    if(q && q.mode === '2x1') return 3;
+    if(q && q.mode === '2x2') return 4;
+    return 3;
+  }
+
+  function modeLabel(modeKey){
+    if(modeKey === '2x1') return '2x1';
+    if(modeKey === '2x2') return '2x2';
+    return '';
+  }
+
+  function modeFullLabel(modeKey){
+    if(modeKey === '2x1') return '2x1｜雙位數 × 個位數';
+    if(modeKey === '2x2') return '2x2｜雙位數 × 雙位數';
+    return '';
+  }
+
+  function modeExample(modeKey){
+    if(modeKey === '2x1') return '98 請打 098';
+    if(modeKey === '2x2') return '980 請打 0980';
+    return '';
+  }
+
+  function buildSelectPad(){
+    selectPad.innerHTML = '';
+
+    for(let n=1;n<=10;n++){
+      const b = document.createElement('button');
+      b.className = 'num' + (selected.has(n) ? ' on' : '');
+      b.textContent = n;
+      b.onclick = () => {
+        if(running) return msg('練習中不能改範圍，請先重來', 'bad');
+        selected.has(n) ? selected.delete(n) : selected.add(n);
+        updateSelection();
+      };
+      selectPad.appendChild(b);
+    }
+
+    function addModeButton(key){
+      const b = document.createElement('button');
+      b.className = 'mode' + key + (selectedModes.has(key) ? ' on' : '');
+      b.textContent = key;
+      b.onclick = () => {
+        if(running) return msg('練習中不能改範圍，請先重來','bad');
+        selectedModes.has(key) ? selectedModes.delete(key) : selectedModes.add(key);
+        updateSelection();
+      };
+      selectPad.appendChild(b);
+    }
+    addModeButton('2x1');
+    addModeButton('2x2');
+
+    const addGoal = document.createElement('button');
+    addGoal.className = 'adjustBtn' + (extraGoalSteps > 0 ? ' on' : '');
+    addGoal.textContent = extraGoalSteps >= 4 ? '題數最多' : `增加題數${extraGoalSteps ? ' +' + (extraGoalSteps * 5) : ''}`;
+    addGoal.onclick = () => {
+      if(running) return msg('練習中不能改題數，請先重來','bad');
+      if(extraGoalSteps < 4) extraGoalSteps++;
+      updateSelection();
+    };
+    selectPad.appendChild(addGoal);
+
+    const addTime = document.createElement('button');
+    addTime.className = 'adjustBtn' + (extraTimeSteps > 0 ? ' on' : '');
+    addTime.textContent = extraTimeSteps >= 4 ? '秒數最多' : `增加秒數${extraTimeSteps ? ' +' + (extraTimeSteps * 5) : ''}`;
+    addTime.onclick = () => {
+      if(running) return msg('練習中不能改秒數，請先重來','bad');
+      if(extraTimeSteps < 4) extraTimeSteps++;
+      updateSelection();
+    };
+    selectPad.appendChild(addTime);
+
+    const all = document.createElement('button');
+    all.className = 'wide'; all.textContent = '全選';
+    all.onclick = () => {
+      if(running) return msg('練習中不能改範圍，請先重來','bad');
+      selectedModes.clear();
+      for(let i=1;i<=10;i++) selected.add(i);
+      updateSelection();
+    };
+
+    const clear = document.createElement('button');
+    clear.className = 'wide red'; clear.textContent = '清空';
+    clear.onclick = () => {
+      if(running) return msg('練習中不能改範圍，請先重來','bad');
+      selected.clear();
+      selectedModes.clear();
+      extraGoalSteps = 0;
+      extraTimeSteps = 0;
+      updateSelection();
+    };
+
+    selectPad.appendChild(all); selectPad.appendChild(clear);
+  }
+
+  function updateSelection(){
+    buildSelectPad();
+
+    const arr = [...selected].sort((a,b)=>a-b);
+    const modes = [...selectedModes];
+    const count = optionCount();
+    goal = computeGoal();
+
+    if(count === 0){
+      el('selectedBox').innerHTML = `目前選 <b>0</b> 個，請先選範圍。`;
+      msg('先用左邊數字鍵選範圍，或選 2x1 / 2x2','');
+      updateStats();
+      return;
+    }
+
+    const parts = [];
+    if(arr.length) parts.push(arr.join('、'));
+    if(modes.length) parts.push(modes.map(modeLabel).join('、'));
+    const detail = parts.join('、');
+
+    const baseGoal = goalFor(count);
+    const addGoalText = extraGoalSteps ? ` + ${extraGoalSteps * 5}` : '';
+    const ruleText = `題數：預設 <b>${baseGoal}</b>${addGoalText} = 答對 <b>${goal}</b> 題｜每題 <b>${timeLimit()}</b> 秒`;
+
+    let extra = '';
+    if(modes.length){
+      const examples = modes.map(m => `${modeFullLabel(m)}：${modeExample(m)}`).join('；');
+      extra = `<br><span style="font-size:16px;color:#6f8290">${examples}</span>`;
+    }
+
+    el('selectedBox').innerHTML = `目前選 <b>${count}</b> 個：<span class="selectedList">${detail}</span><br>${ruleText}${extra}`;
+    msg(`已選 ${detail}，目標答對 ${goal} 題｜每題 ${timeLimit()} 秒`, 'ok');
+    updateStats();
+  }
+
+  function makePool(){
+    pool = [];
+
+    if(selectedModes.has('2x1')){
+      for(let a=10; a<=99; a++){
+        for(let b=2; b<=9; b++) pool.push({a,b,ans:a*b, mode:'2x1'});
+      }
+    }
+
+    if(selectedModes.has('2x2')){
+      for(let a=10; a<=99; a++){
+        for(let b=10; b<=99; b++) pool.push({a,b,ans:a*b, mode:'2x2'});
+      }
+    }
+
+    const arr = [...selected];
+    for(const a of arr){
+      for(let b=1;b<=10;b++) pool.push({a,b,ans:a*b});
+    }
+  }
+
+  function randomFromPool(){
+    if(pool.length === 0) makePool();
+    return {...pool[Math.floor(Math.random()*pool.length)]};
+  }
+
+  function chooseQuestion(){
+    // 錯題不要馬上出，累積後每 3 題左右混回來
+    if(retryQueue.length && attempts > 0 && attempts % 3 === 0){
+      return {...retryQueue.shift(), retry:true};
+    }
+    return randomFromPool();
+  }
+
+  function start(useOnlyWrong=false){
+    if(useOnlyWrong){
+      if(wrongs.length === 0) return msg('目前沒有錯題可重練', 'bad');
+      selected.clear();
+      selectedModes.clear();
+      wrongs.forEach(w => {
+        if(w.mode === '2x1' || w.mode === '2x2') selectedModes.add(w.mode);
+        else selected.add(w.a);
+      });
+      updateSelection();
+      retryQueue = wrongs.map(w => ({a:w.a,b:w.b,ans:w.ans,mode:w.mode}));
+      pool = retryQueue.map(q => ({...q}));
+      goal = Math.min(computeGoal(), retryQueue.length || 5);
+    }else{
+      if(optionCount() === 0) return msg('請先選要考哪幾個乘法，或選 2x1 / 2x2', 'bad');
+      makePool();
+      retryQueue = [];
+      wrongs = [];
+      goal = computeGoal();
+    }
+    clearTimeout(autoSubmitTimer);
+    correct = 0; attempts = 0; input = ''; questionNo = 0;
+    running = true; paused = false;
+    el('stopBtn').textContent = '暫停';
+    startTotalTimer();
+    updateReview();
+    updateStats();
+    nextQuestion();
+    if(micOn) setTimeout(startListening, 150);
+  }
+
+  function nextQuestion(){
+    clearInterval(countdownTimer);
+    clearTimeout(autoSubmitTimer);
+    if(!running) return;
+    if(correct >= goal) return finish();
+    current = chooseQuestion();
+    questionNo++;
+    input = '';
+    el('answerBox').textContent = '';
+    el('qno').textContent = `第 ${questionNo} 題｜答對 ${correct}/${goal}`;
+    el('question').textContent = `${current.a} × ${current.b}`;
+    msg(isAdvancedQuestion(current) ? `${timeLimit()} 秒內作答｜${current.mode} 請輸入 ${requiredDigits(current)} 位，不足補 0` : `${timeLimit()} 秒內作答｜個位數請按送出，或打 09`, '');
+    questionStart = performance.now();
+    tick();
+    countdownTimer = setInterval(tick, 80);
+  }
+
+  function tick(){
+    if(!running || paused) return;
+    const elapsed = (performance.now() - questionStart) / 1000;
+    const left = Math.max(0, timeLimit() - elapsed);
+    el('remain').textContent = left.toFixed(1);
+    el('timeProgress').style.width = `${left / timeLimit() * 100}%`;
+    if(left <= 0){
+      clearInterval(countdownTimer);
+      clearTimeout(autoSubmitTimer);
+      markWrong('未作答', true);
+    }
+  }
+
+  function pressKey(k){
+    if(!running || paused) return msg('請先按開始', 'bad');
+    clearTimeout(autoSubmitTimer);
+
+    if(k === 'submit') return submitAnswer();
+    if(k === 'clear') {
+      input = '';
+      el('answerBox').textContent = input;
+      return;
+    }
+    if(k === 'back') {
+      input = input.slice(0,-1);
+      el('answerBox').textContent = input;
+      return;
+    }
+
+    // 新規則：避免學生想打 24，只按 2 就被系統判定。
+    // 所以數字鍵盤「第一個數字」一律不自動送出。
+    // 個位數答案請打 09，或按 9 後按「送出」。
+    if(input.length < requiredDigits(current)) input += k;
+    el('answerBox').textContent = input;
+
+    if(input === '') return;
+
+    // 進階模式固定輸入位數，避免 098 / 0980 這種答案被提前判定。
+    if(isAdvancedQuestion(current)){
+      const digits = requiredDigits(current);
+      if(input.length < digits){
+        msg(`${current.mode} 請輸入 ${digits} 位，不足補 0。`, '');
+        return;
+      }
+      autoSubmitTimer = setTimeout(() => submitAnswer(true), 80);
+      return;
+    }
+
+    const normalized = input.length === 2 && input[0] === '0' ? String(Number(input)) : input;
+    const val = Number(normalized);
+
+    // 只有以下情況才自動送出：
+    // 1. 已輸入 2 位數以上（例如 24、09）
+    // 2. 100 必須輸入滿 3 位才自動送出
+    // 3. 不足位數不自動送出，讓學生有時間補第二位
+    if(input.length === 1){
+      msg('個位數可按「送出」，或打 09 這種兩位格式。', '');
+      return;
+    }
+
+    if(current.ans === 100 && input.length < 3){
+      return;
+    }
+
+    // 兩位或三位後直接送出，不用靠「有沒有過關」猜答案。
+    autoSubmitTimer = setTimeout(() => submitAnswer(true), val === current.ans ? 40 : 120);
+  }
+
+  function submitAnswer(auto=false){
+    clearTimeout(autoSubmitTimer);
+    if(!running || paused || !current) return;
+    if(input === '') return msg('請輸入答案', 'bad');
+    const val = Number(input);
+    clearInterval(countdownTimer);
+    if(val === current.ans){
+      correct++;
+      attempts++;
+      msg('答對！', 'ok');
+      updateStats();
+      setTimeout(nextQuestion, auto ? 180 : 260);
+    }else{
+      markWrong(val, false);
+    }
+  }
+
+  function markWrong(userAnswer, timeout){
+    clearTimeout(autoSubmitTimer);
+    if(!running || !current) return;
+    attempts++;
+    const item = {a:current.a,b:current.b,ans:current.ans,user:userAnswer,mode:current.mode};
+    wrongs.push(item);
+    retryQueue.push({a:current.a,b:current.b,ans:current.ans,mode:current.mode});
+    msg(timeout ? '時間到，之後再出一次' : '答錯，之後再出一次', 'bad');
+    updateStats();
+    updateReview();
+    setTimeout(nextQuestion, 520);
+  }
+
+  function finish(){
+    running = false; paused = false;
+    clearInterval(countdownTimer);
+    clearTimeout(autoSubmitTimer);
+    stopTotalTimer();
+    if(micOn) stopListening('本輪完成，麥克風已關閉。');
+    el('qno').textContent = '完成';
+    el('question').textContent = `${correct}/${goal}`;
+    el('answerBox').textContent = `總秒數 ${(finalTotalMs/1000).toFixed(1)}`;
+    el('remain').textContent = '0.0';
+    el('timeProgress').style.width = '0%';
+    msg(wrongs.length ? `完成！錯題 ${wrongs.length} 次，可按「重練錯題」` : '完成！完全沒有錯題！', wrongs.length ? 'bad' : 'ok');
+    updateStats();
+    updateReview();
+  }
+
+  function togglePause(){
+    if(!running) return msg('目前沒有進行中的練習', 'bad');
+    paused = !paused;
+    if(paused){
+      clearInterval(countdownTimer);
+      clearTimeout(autoSubmitTimer);
+      if(recognition && recognizing){ try { recognition.stop(); } catch(e) {} }
+      pauseStart = performance.now();
+      updateTotalTime();
+      el('stopBtn').textContent = '繼續';
+      msg('已暫停', '');
+    }else{
+      if(pauseStart) totalPausedMs += performance.now() - pauseStart;
+      pauseStart = 0;
+      questionStart = performance.now() - (timeLimit() - Number(el('remain').textContent)) * 1000;
+      countdownTimer = setInterval(tick, 80);
+      if(micOn) setTimeout(startListening, 150);
+      el('stopBtn').textContent = '暫停';
+      msg('繼續作答', '');
+    }
+  }
+
+  function updateStats(){
+    updateTotalTime();
+    el('correctGoal').textContent = `${correct}/${goal || computeGoal() || 0}`;
+    el('attempts').textContent = attempts;
+    el('wrongCount').textContent = wrongs.length;
+    const maxGoal = goal || computeGoal() || 1;
+    el('progress').style.width = `${Math.min(100, correct / maxGoal * 100)}%`;
+  }
+
+  function updateReview(){
+    const list = el('wrongList');
+    list.innerHTML = '';
+    if(wrongs.length === 0){
+      el('reviewHelp').textContent = '目前沒有錯題。';
+      return;
+    }
+    el('reviewHelp').textContent = `已收集 ${wrongs.length} 次錯題，系統會混回來再考。`;
+    wrongs.slice(-24).forEach(w => {
+      const d = document.createElement('div');
+      d.className = 'wrongItem';
+      d.textContent = `${w.a}×${w.b}=${w.ans}（你答 ${w.user}）${w.mode ? '｜' + w.mode : ''}`;
+      list.appendChild(d);
+    });
+  }
+
+  function msg(text, type){
+    const m = el('msg');
+    m.textContent = text;
+    m.className = 'msg' + (type ? ' ' + type : '');
+  }
+
+  document.querySelectorAll('[data-key]').forEach(b => b.addEventListener('click', () => pressKey(b.dataset.key)));
+  document.addEventListener('keydown', e => {
+    if(e.key >= '0' && e.key <= '9') pressKey(e.key);
+    else if(e.key === 'Backspace') pressKey('back');
+    else if(e.key === 'Enter'){ e.preventDefault(); pressKey('submit'); }
+  });
+
+  el('startBtn').onclick = () => start(false);
+  el('restartBtn').onclick = () => start(false);
+  el('wrongBtn').onclick = () => start(true);
+  el('stopBtn').onclick = togglePause;
+  el('micBtn').onclick = toggleMic;
+  setupMic();
+  el('tableBtn').onclick = openTable;
+  el('closeTable').onclick = closeTable;
+  el('tableModal').addEventListener('click', e => { if(e.target === el('tableModal')) closeTable(); });
+
+  buildSelectPad();
+  updateSelection();
+})();
+</script>
+</body>
+</html>
